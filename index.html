@@ -203,7 +203,11 @@ function playTone(f, t, d) { const o = audioCtx.createOscillator(); const g = au
 
 function initWords() { Object.keys(dataRaw).forEach(lvl => { words[lvl] = dataRaw[lvl].split(',').map(p => { const parts = p.split(':'); return [parts[0].trim(), parts[1].trim()]; }); }); }
 
-window.onload = () => { initWords(); updateRankDisplay(); setTimeout(startStory, 500); };
+document.addEventListener("DOMContentLoaded", () => {
+    initWords();           
+    updateRankDisplay();   
+    startStory();          
+});
 
 function startStory() {
     const sb = document.getElementById('story-box');
