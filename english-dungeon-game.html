@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音靈戰記：1200 斬 (神話覺醒版)</title>
+    <style>
+        :root { --primary: #3498db; --evolution: #f1c40f; --wrong: #e74c3c; --bg: #1a252f; --combo: #e67e22; --critical: #9b59b6; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; color: #fff; }
+        .wrapper { display: flex; gap: 20px; max-width: 1100px; width: 100%; flex-wrap: wrap; align-items: flex-start; }
+        .container { flex: 2; min-width: 320px; background: #2c3e50; padding: 25px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 4px solid #34495e; min-height: 550px; position: relative; }
+        .sidebar { flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 20px; }
+        .side-box { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 20px; border: 2px solid #546e7a; }
+        
+        /* 離開按鈕 */
+        #exit-btn { position: absolute; top: 20px; right: 20px; background: none; border: 2px solid #546e7a; color: #bdc3c7; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; display: none; z-index: 100; transition: 0.3s; }
+        #exit-btn:hover { background: var(--wrong); color: white; border-color: var(--wrong); }
+
+        #story-box { line-height: 2; font-size: 1.25rem; padding: 20px; min-height: 250px; color: #ecf0f1; }
+        .typing-cursor { border-right: 2px solid var(--evolution); animation: blink 0.7s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* 進化與視覺特效 */
+        .battle-scene { text-align: center; background: radial-gradient(circle, #2c3e50 0%, #1a252f 100%); padding: 20px; border-radius: 20px; border: 2px solid #546e7a; margin-bottom: 20px; position: relative; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: space-around; transition: filter 0.5s; }
+        .evo-flash { filter: brightness(5) !important; }
+        .spirit-side { transition: transform 0.1s; }
+        .evo-shake { animation: shake 0.1s infinite !important; }
+        
+        .monster-icon { font-size: 70px; animation: monsterFloat 2s ease-in-out infinite; }
+        @keyframes monsterFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .hit { animation: hitAnim 0.3s forwards; }
+        @keyframes hitAnim { 0% { transform: scale(1); } 50% { transform: scale(1.3); background: rgba(231, 76, 60, 0.5); } 100% { transform: scale(1); } }
+        .shake { animation: shake 0.2s infinite; }
+        @keyframes shake { 0% { transform: translate(3px, 3px) rotate(1deg); } 50% { transform: translate(-3px, -3px) rotate(-1deg); } }
+        
+        .speech-bubble { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); background: #fff; border: 3px solid var(--primary); padding: 8px 15px; border-radius: 15px; font-size: 0.9rem; color: #2c3e50; font-weight: bold; width: 80%; z-index: 10; opacity: 0; transition: 0.3s; pointer-events: none; }
+        .bubble-show { opacity: 1; }
+        
+        .progress-bar-bg { width: 100%; height: 14px; background: #1a2a3a; border-radius: 7px; overflow: hidden; border: 1px solid #546e7a; margin: 5px 0; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #2ecc71, #27ae60); width: 0%; transition: 0.5s; }
+        
+        .word-card { font-size: 3.5rem; color: #ecf0f1; font-weight: 900; margin: 10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .critical-text { animation: critAnim 0.8s forwards; color: #ffeb3b; font-style: italic; font-weight: 900; text-shadow: 0 0 10px #f44336; font-size: 2rem; position: absolute; top: 40%; left: 50%; transform: translateX(-50%); pointer-events: none; z-index: 50; }
+        @keyframes critAnim { 0% { transform: translate(-50%, 0) scale(0.5); opacity: 0; } 20% { transform: translate(-50%, -20px) scale(1.5); opacity: 1; } 100% { transform: translate(-50%, -60px) scale(1); opacity: 0; } }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-top: 10px; }
+        .opt-btn { padding: 18px 10px; border: none; border-radius: 15px; background: #ecf0f1; cursor: pointer; font-size: 1.2rem; font-weight: bold; color: #2c3e50; box-shadow: 0 4px #bdc3c7; }
+        .timer-bar { width: 100%; height: 8px; background: #e74c3c; transform-origin: left; transition: transform 0.1s linear; margin-bottom: 10px; border-radius: 4px; }
+        .main-btn { padding: 15px 40px; background: #e74c3c; color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 1.1rem; width: 88%; font-weight: bold; box-shadow: 0 4px #c0392b; margin-top: 10px; }
+        .list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #546e7a; font-size: 0.85rem; }
+        .save-tip { margin-top: 25px; font-size: 0.95rem; color: #bdc3c7; line-height: 1.6; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px dashed #546e7a; }
+        .tutorial-box { text-align: left; background: #1a252f; padding: 25px; border-radius: 15px; margin-bottom: 20px; line-height: 1.8; color: #ecf0f1; }
+        
+        #confirm-modal, #rank-modal, #rank-up-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: #34495e; padding: 30px; border-radius: 25px; width: 90%; max-width: 400px; border: 3px solid var(--evolution); text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="rank-up-modal">
+    <div class="modal-content" style="border-color: var(--evolution); background: radial-gradient(circle, #34495e 0%, #1a252f 100%);">
+        <h1 style="color:var(--evolution); margin-bottom:10px;">🌟 靈力突破！</h1>
+        <p style="font-size: 1.2rem;">獲得了新的傳奇稱號：</p>
+        <h2 id="new-rank-name" style="color:#fff; background: rgba(241, 196, 15, 0.3); padding: 10px; border-radius: 10px;">稱號載入中</h2>
+        <button class="main-btn" onclick="closeRankUp()" style="background:var(--evolution); color:#2c3e50; margin-top: 20px;">繼續守護異世界</button>
+    </div>
+</div>
+
+<div id="confirm-modal">
+    <div class="modal-content">
+        <h2 style="color:var(--wrong);">🚪 離開異世界</h2>
+        <p>要離開異世界了嗎？進度將自動記憶。</p>
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+            <button class="main-btn" style="background:#27ae60; box-shadow:0 4px #219150; margin:0;" onclick="exitGame(true)">是 (存檔退出)</button>
+            <button class="main-btn" style="background:#7f8c8d; box-shadow:0 4px #666; margin:0;" onclick="exitGame(false)">否 (留在森林)</button>
+        </div>
+    </div>
+</div>
+
+<div id="rank-modal" onclick="closeRank()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h2 style="color:var(--evolution); margin-top:0;">🏆 傳奇英雄榜</h2>
+        <div id="full-rank-list"></div>
+        <button class="main-btn" onclick="closeRank()" style="margin-top: 20px;">返回冒險</button>
+    </div>
+</div>
+
+<div class="wrapper">
+    <div class="container">
+        <button id="exit-btn" onclick="askExit()" title="離開遊戲">🚪</button>
+
+        <div id="step-story-intro" style="display:block;">
+            <h2 style="text-align:center; color:var(--evolution);">🌀 異世界的召喚</h2>
+            <div id="story-box">正在連繫異世界...</div>
+            <div style="text-align:center; margin-top: 20px;"><button id="next-story-btn" class="main-btn" onclick="playNextSegment()" style="display:none; width: auto;">NEXT</button></div>
+        </div>
+
+        <div id="step-pet" style="display:none; text-align:center; margin-top: 50px;">
+            <h2 style="color:var(--evolution);">✨ 覺醒之時</h2>
+            <p>請為你在這個世界的「精靈化身」命名：</p>
+            <input type="text" id="in-pet" placeholder="輸入精靈名字" style="padding:15px; width:80%; border-radius:12px; border:none; margin-bottom:20px; text-align:center; font-size:1.1rem;">
+            <button class="main-btn" onclick="checkSaveAndShowTutorial()">確立契約</button>
+            <div class="save-tip">💡 輸入名字與之前一致，即可<strong>繼承進度與積分</strong>！</div>
+        </div>
+
+        <div id="step-tutorial" style="display:none; text-align:center;">
+            <div class="tutorial-box">
+                <h3 style="text-align:center; margin-top:0;">📜 戰鬥指南</h3>
+                <p>精靈請注意，畫面下方會出現一條紅色計時條：</p>
+                <div class="timer-bar" style="box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);"></div>
+                <ul style="padding-left: 20px;">
+                    <li>每一題有 <span style="color:#f1c40f; font-weight:bold;">5 秒</span> 的黃金時間。</li>
+                    <li>在計時條跑完前答對，會獲得<span style="color:#f1c40f; font-weight:bold;">額外經驗值</span>。</li>
+                    <li>在 <span style="color:#f1c40f; font-weight:bold;">1 秒內</span> 極速答對會觸發 <span style="color:var(--critical); font-weight:bold;">5倍暴擊</span>！</li>
+                    <li><span style="color:#2ecc71; font-weight:bold;">計時結束不代表失敗！</span>精靈不會受傷。</li>
+                </ul>
+            </div>
+            <button class="main-btn" onclick="startGame()">我知道了，出陣！</button>
+        </div>
+
+        <div id="step-rest" style="display:none; text-align:center; margin-top:50px;">
+            <div class="tutorial-box"><h3 style="text-align:center; color:var(--primary);">☕ 靈力修復中</h3><p>累了嗎？先讓眼睛休息一下吧！</p></div>
+            <button class="main-btn" onclick="resumeGame()">休息完畢，繼續擊殺！</button>
+        </div>
+
+        <div id="game-ui-all" style="display:none;">
+            <div class="battle-scene" id="main-battle-scene">
+                <div id="bubble" class="speech-bubble">...</div>
+                <div id="critical-overlay"></div>
+                <div class="combatant-box" style="display:flex; width:100%; justify-content:space-around; align-items:center;">
+                    <div class="spirit-side" id="spirit-container">
+                        <div id="spirit-visual" style="font-size: 70px;">🥚</div>
+                        <div style="font-size: 0.85rem; font-weight: bold; color: #3498db; margin-top: 5px;" id="spirit-rank">精靈蛋</div>
+                    </div>
+                    <div class="monster-side" id="monster-container"><div class="monster-icon" id="monster-img">👾</div><div style="font-size: 0.75rem; font-weight: bold; color: #e74c3c; margin-top: 5px;">LV. <span id="monster-lvl">1</span> <span id="monster-type">怪物</span></div></div>
+                </div>
+                <div id="evo-info" style="width:90%;">
+                    <div style="font-size: 0.8rem; color: #bdc3c7; display: flex; justify-content: space-between; align-items: baseline;">
+                        <span><span id="p-name">精靈</span> [<span id="p-title" style="color:var(--evolution);">稱號</span>]</span>
+                        <span>進度: <span id="mastered-count">0</span> / <span id="total-count">0</span></span>
+                    </div>
+                    <div class="progress-bar-bg"><div id="evo-fill" class="progress-bar-fill"></div></div>
+                    <div style="font-size: 0.75rem; color: var(--evolution); margin-top: 5px; text-align: right;">EP: <span id="ep-val">0</span></div>
+                </div>
+            </div>
+
+            <div style="text-align:center;">
+                <div id="timer-ui" class="timer-bar" style="transform: scaleX(1);"></div>
+                <div id="combo-tag" style="color:var(--combo); font-weight:bold; height:1.2rem; font-size: 0.9rem;"></div>
+                <div id="cur-word-display" class="word-card">Word</div>
+                <button onclick="replaySynthesis()" style="background:none; border:none; font-size:30px; cursor:pointer; color:#fff; margin-bottom:10px;">🔊</button>
+                <div id="options" class="options-grid"></div>
+                <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
+                    <select id="level-select" onchange="changeLevel()" style="padding:10px; border-radius:10px; background:#455a64; color:#fff; border:none;">
+                        <option value="1">1F: 核心生存</option><option value="2">2F: 生活擴充</option><option value="3">3F: 語法功能</option>
+                    </select>
+                    <button class="main-btn" style="width:auto; padding:10px 20px; margin:0; background:var(--evolution); color:#2c3e50;" onclick="openRank()">🏆 排行</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="step-story-end" style="display:none; text-align:left; background:rgba(0,0,0,0.5); padding:25px; border-radius:20px; line-height:1.8;">
+            <h2 style="text-align:center; color:var(--evolution);">🌟 傳說的誕生</h2>
+            <div id="story-end-content"></div>
+            <button class="main-btn" onclick="backToGame()">繼續磨練，挑戰巔峰！</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="side-box"><h3 style="text-align:center; margin:0; font-size:1.1rem;">🏆 戰功榜</h3><div id="rank-list"></div></div>
+        <div class="side-box"><h3 style="text-align:center; margin:0; font-size:1.1rem;">💀 弱點次數</h3><div id="wrong-list-box"></div></div>
+    </div>
+</div>
+
+<script>
+const dataRaw = { 1: "apple:蘋果,boy:男孩,cat:貓,dog:狗,egg:蛋,fish:魚,hi:嗨,man:男人,pen:筆,run:跑,sun:太陽,water:水,zero:零,bird:鳥,book:書,bus:公車,car:車,desk:書桌,door:門,eye:眼睛,five:五,food:食物,girl:女孩,hand:手,home:家,king:國王,milk:牛奶,name:名字,nose:鼻子,one:一,pig:豬,rain:下雨,school:學校,ten:十,zoo:動物園,a(an):一(個),about:關於,after:在之後,air:空氣,all:全部,also:也,always:總是,and:和,angry:生氣的,animal:動物,another:另一個,answer:回答,ant:螞蟻,any:任何的,April:四月,arm:手臂,around:在四周,arrive:到達,art:美術,as:與...一樣,ask:問,at:在,August:八月,aunt:伯母,autumn:秋天,away:遠離,baby:嬰兒,back:在後面,bad:壞的,badminton:羽毛球,bag:袋子,bake:烘烤,bakery:麵包店,balcony:陽台,ball:球,banana:香蕉,band:樂團,bank:銀行,barbecue:烤肉,baseball:棒球,basket:籃子,basketball:籃球,bat:蝙蝠,bath:洗澡,bathroom:浴室,be:是,beach:海灘,bean:豆,bear:熊,beautiful:美麗的,because:因為,become:變成,bed:床,bedroom:臥室,bee:蜜蜂,beef:牛肉,before:在之前,begin:開始,behind:在後面,believe:相信,bell:鈴,belong:屬於,below:在下方,belt:皮帶,bench:長椅,beside:在旁邊,between:在之間,bike:腳踏車,big:大的,bird:鳥,birthday:生日,bite:咬,black:黑色,blackboard:黑板,blanket:毯子,blind:瞎的,block:街區,blow:吹,blue:藍色,boat:船,body:身體,boil:煮沸,book:書,bookstore:書店,bored:感到厭煩的,boring:無聊的,born:出生,borrow:借入,boss:老闆,both:兩者都,bottle:瓶子,bottom:底部,bow:敬禮,bowl:碗,box:盒子,boy:男孩,bread:麵包,break:打破,breakfast:早餐,bridge:橋,bright:明亮的,bring:帶來,brother:兄弟,brown:棕色,brush:刷,bug:小蟲,build:建造,bun:小圓麵包,burn:燃燒,bus:公車,business:生意,businessman:商人,busy:忙碌的,but:但是,butter:奶油,butterfly:蝴蝶,buy:買,by:藉著,cage:籠子,cake:蛋糕,call:打電話,cap:帽子,camp:露營,can:能夠,candle:蠟燭,candy:糖果,camera:相機,car:車子,card:卡片,care:關心,careful:仔細的,carry:攜帶,case:情形,castle:城堡,cat:貓,catch:趕上,celebrate:慶祝,cell phone:手機,cent:分錢,center:中心,centimeter:公分,chair:椅子,chalk:粉筆,chance:機會,change:交換,cheap:便宜的,cheat:欺騙,check:檢查,cheer:歡議,cheese:乳酪,chess:西洋棋,chicken:雞肉,child:小孩,China:中國,Chinese:中文,chocolate:巧克力,choose:選擇,chopsticks:筷子,Christmas:聖誕節,church:教堂,circle:圓圈,city:城市,clap:拍手,class:班級,classmate:同班同學,classroom:教室,clean:打掃,clear:清楚的,clerk:店員,climb:爬,clock:時鐘,close:關上,clothes:衣服,cloudy:多雲的,club:社團,coat:大衣,coffee:咖啡,Coke:可樂,cold:寒冷的,collect:收集,color:顏色,come:來,comb:梳子,comfortable:舒適的,comic:連環漫畫,common:共同的,computer:電腦,convenient:方便的,cook:煮飯,cookie:餅乾,cool:涼爽的,copy:抄寫,corner:角落,correct:正確的,cost:價值,couch:沙發,count:計算,country:鄉村,course:課程,cousin:堂兄弟,cover:覆蓋,cow:母牛,cowboy:牛仔,crazy:瘋狂的,cross:越過,cry:哭,cup:茶杯,cut:切,cute:可愛的,dance:跳舞,dangerous:危險的,dark:黑暗的,date:日期,daughter:女兒,day:日子,dead:死的,dear:親愛的,December:十二月,decide:點定,delicious:美味的,dentist:牙醫,department store:百貨公司,desk:書桌,dictionary:字典,die:死掉,different:不同的,difficult:困難的,dig:挖掘,dining room:飯廳,dinner:晚餐,dirty:骯髒的,dish:盤子,do:做,doctor:醫生,dodge ball:躲避球,dog:狗,doll:洋娃娃,dollar:元,door:門,dot:點,down:向下,dozen:一打,dragon:龍,draw:畫,drawer:抽屜,dream:做夢,dress:洋裝,drink:喝,drive:駕駛,driver:駕駛人,drop:掉落,drum:鼓,dry:乾的,duck:鴨,dumpling:餃子,during:期間,each:每一,ear:耳朵,early:早的,earth:地球,Easter:復活節,east:東方,easy:容易的,eat:吃,egg:蛋,eight:八,eighteen:十八,eighth:第八,eighty:八十,either:也不,elementary school:小學,elephant:大象", 2: "eleven:十一,eleventh:第十一,else:其他的,e-mail:電子郵件,end:結束,engineer:工程師,English:英語,enjoy:喜愛,enough:足夠的,enter:進入,envelope:信封,eraser:橡皮擦,eve:前夕,even:甚至,evening:傍晚,ever:曾經,every:每一個,everyone:每一個人,everything:每件事,example:例子,excellent:極好的,except:除了,excited:感到興奮的,exciting:令人興奮的,excuse:原諒,exercise:運動,expensive:昂貴的,experience:經驗,eye:眼睛,face:臉孔,fact:事實,factory:工廠,fail:失敗,fall:秋天,family:家庭,famous:有名的,fan:扇子,far:遠的,farm:農田,farmer:農夫,fast:快的,fat:胖的,father:父親,favorite:最喜愛的,February:二月,feed:餵,feel:覺得,festival:節慶,fever:發燒,few:少數的,fifteen:十五,fifteenth:第十五,fifth:第五,fifty:五十,fight:打架,fill:裝滿,finally:最後,find:找到,fine:很好的,finger:手指,finish:完成,fire:火焰,first:第一,fish:魚,fisherman:漁夫,five:五,fix:修理,floor:地板,flower:花朵,flute:笛,fly:飛,follow:遵循,food:食物,foot:腳,for:為了,foreign:外國的,foreigner:外國人,forget:忘記,fork:叉子,forty:四十,four:四,fourteen:十四,fourteenth:第十四,fourth:第四,fox:狸,free:空閒的,French fries:炸薯條,fresh:新鮮的,Friday:星期五,friend:朋友,friendly:友善的,frisbee:飛盤,frog:青蛙,from:從,front:前面,fruit:水果,fry:油炸,full:滿的,fun:樂趣,funny:好笑的,future:未來,game:比賽,garbage:垃圾,garden:花園,gas:瓦斯,gate:大門,get:得到,ghost:鬼,giant:巨人,gift:禮物,girl:女孩,give:給予,glad:高興的,glass:玻璃,glasses:眼鏡,glove:手套,glue:膠水,go:去,goat:山羊,good:好的,goodbye:再見,goose:鵝,grade:年級,gram:公克,grandfather:祖父,grandmother:祖母,grape:葡萄,grass:草,gray:灰色的,great:很棒的,green:綠色,ground:地面,group:團體,grow:種植,guava:番石榴,guess:猜想,guitar:吉他,guy:傢伙,gym:體育館,habit:習慣,hair:頭髮,half:一半,Halloween:萬聖節,ham:火腿,hamburger:漢堡,hand:手,handsome:英俊的,hang:懸掛,happen:發生,happy:快樂的,hard:困難的,hard-working:努力工作的,hat:帽子,hate:討厭,have:有,he:他,head:頭,headache:頭痛,health:健康,healthy:健康的,hear:聽,heart:心,heat:熱度,heavy:重的,hello:喂,helpful:有幫助的,hen:母雞,here:這裡,hey:嘿,hi:嗨,hide:隱藏,high:高的,hike:徒步旅行,hill:小山,hippo:河馬,history:歷史,hit:打擊,hobby:嗜好,hold:拿著,holiday:假日,home:家,homework:家庭作業,honest:誠實的,honey:蜂蜜,hop:跳,hope:希望,horse:馬,hospital:醫院,hot:熱的,hot dog:熱狗,hotel:旅社,hour:小時,house:房屋,housewife:家庭主婦,how:如何,however:難而,hundred:百,hungry:飢餓的,hunt:打獵,hurry:趕忙,hurt:受傷,husband:丈夫,I:我,ice:冰,ice cream:冰淇淋,idea:主意,if:如果,important:重要的,in:在裡面,insect:昆蟲,inside:在內部,interest:使感興趣,interested:感興趣的,interesting:有趣的,interview:訪問,Internet:網路,into:之內,invite:邀請,island:島嶼,it:它,jacket:夾克,January:一月,jeans:牛仔褲,job:工作,jog:慢跑,join:加入,joy:歡樂,juice:果汁,July:七月,jump:跳躍,June:六月,junior high school:國中,just:只是,kangaroo:袋鼠,keep:保持,key:鑰匙,kick:踢,kid:小孩,kill:殺,kilo:公斤,kind:種類,king:國王,kiss:吻,kitchen:廚房,kite:風箏,knee:膝蓋,knife:刀子,knock:敲,know:知道,knowledge:知識,koala:無尾熊,lake:湖,lamp:燈,land:土地,language:語言,lantern:燈籠,large:大的,last:最後的,late:晚的,later:稍後,laugh:笑,lawyer:律師,lazy:懶惰的,lead:引導,leader:領導者,learn:學習,least:最少,leave:離開,left:左邊,leg:腿,lemon:檬檬,lend:借出,less:較少的,lesson:課,let:讓,letter:信,lettuce:萵苣,library:圖書館,lid:蓋子,lie:說謊,life:生活,light:燈光,like:喜歡,line:線條,lion:獅子,lip:嘴唇,list:表,listen:聽,little:小的,live:住,living room:客廳,lonely:寂寞的,long:長的,look:看,lose:遺失,loud:大聲的,love:喜愛,lovely:可愛的,low:低的,lucky:幸運的,lunch:午餐,machine:機器,mad:瘋狂的,magic:神奇的,mail:信件,mailman:郵差,make:製作,man:男人,many:許多,map:地圖,March:三月,mark:做記號,marker:簽字筆,market:市場,married:已婚的,mask:面具,mat:墊子,math:數學,matter:事情,may:可能,May:五月,maybe:也許,meal:一餐,mean:意指,meat:肉,medicine:藥,medium:中號,meet:遇見,meeting:會議,menu:菜單,mile:英里,milk:牛奶,million:百萬,mind:介意,minute:分鐘,Miss:小姐,miss:想念,mistake:錯誤,modern:現代化的,moment:片刻,Monday:星期一,money:錢,monkey:猴子,month:月份,moon:亮,mop:拖地,more:更多的,morning:早上,most:大部分的,mother:母親,motorcycle:機車,mountain:山脈,mouse:老鼠,mouth:嘴巴,move:移動,movie:電影,Mr.:先生,Mrs.:太太,MRT:捷運,Ms.:女士,much:許多,mud:泥巴,museum:博物館,music:音樂,must:必須,nail:釘子,name:名字,national:國家的,near:在附近,neck:脖子,need:需要,neighbor:鄰居,never:從攻,new:新的,news:消息,next:下一個,nice:好的,night:晚上,nine:九,nineteen:十九,nineteenth:第十九,ninety:九十,ninth:第九,no:不,nobody:沒有人,nod:點頭,noise:噪音,noodle:麵條,noon:中午,north:北方,nose:鼻子,not:不,note:筆記,notebook:筆記本,nothing:沒東西,notice:注意到,November:十一月,now:現在,number:號碼", 3: "nurse:護士,o'clock:點鐘,October:十月,of:...的,off:離開,office:辦公室,officer:官員,often:時常,oil:油,OK:可以,old:老的,on:在上面,once:once,one:一,only:只有,open:打開,or:或,orange:柳橙,order:秩序,other:其他的,out:在外,outside:在外部,over:結束,own:自己的,ox:公牛,pack:包,package:包裹,page:頁,paint:繪畫,pair:一雙,pants:長褲,papaya:木瓜,paper:紙,parent:父母親,park:公園,part:部分,party:派對,pass:通過,past:經過,paste:黏貼,pay:付錢,PE:體育,peach:桃子,pear:梨子,pen:筆,pencil:鉛筆,people:人們,perhaps:或許,person:人,pet:寵物,photo:相片,piano:鋼琴,pick:撿拾,picnic:野餐,picture:圖片,pie:派,piece:片,pig:豬,pin:大頭針,pink:粉紅色,pipe:管,pizza:披薩,place:地方,plan:計畫,planet:行星,plant:植物,plate:盤子,play:玩,player:球員,playground:操場,pleasure:樂趣,please:請,p.m.:下午,pocket:口袋,point:得分,police:警察,polite:有禮貌的,pond:池塘,pool:游泳池,poor:貧困的,popcorn:爆米花,popular:受歡迎的,pork:豬肉,possible:可能的,post office:郵局,postcard:明信片,pot:罐,pound:磅,practice:練習,pray:祈願,prepare:準備,present:禮物,pretty:漂亮的,price:價格,princess:公主,prize:獎品,problem:問題,program:節目,proud:驕傲的,public:公眾的,pull:拉,pumpkin:南瓜,purple:紫色,push:推,put:防,quarter:1/4,queen:皇后,question:問題,quick:迅速的,quiet:安靜的,quite:相當,quiz:小考,rabbit:兔子,race:賽跑,radio:收音機,railroad:鐵路,rain:下雨,rainbow:彩虹,rainy:下雨的,raise:舉起,rat:老鼠,read:讀,ready:準備好的,real:真實的,really:真地,recorder:錄音機,red:紅色,refrigerator:冰箱,remember:記得,repeat:重複,reporter:記者,rest:休息,restaurant:餐館,restroom:洗手間,rice:米飯,rich:有錢的,ride:騎,right:右邊,ring:戒指,river:河,road:道路,robot:機器人,ROC:中華民國,rock:岩石,roll:滾,room:房間,roller-skate:溜冰,rope:繩子,rose:玫瑰,round:圓形的,row:划,rule:規則,ruler:尺,run:跑,sad:悲傷的,safe:安全的,sail:航行,salad:沙拉,sale:出售,salesman:推銷員,salt:鹽,same:相同的,sandwich:三明治,Saturday:星期六,sacred:神聖的,save:節省,say:說,school:學校,science:科學,scooter:速克達,screen:螢幕,sea:海,season:季節,seat:座位,second:第二,secretary:秘書,see:看,seed:種子,seesaw:蹺蹺板,seldom:很少,sell:賣,send:寄,senior high school:高中,sentence:句子,September:九月,serious:嚴重的,set:機,seven:七,seventeen:十七,seventeenth:第十七,seventh:第七,seventy:七十,several:幾個的,shake:搖動,shall:將會,shape:形狀,share:分享,shark:鯊魚,she:她,sheep:綿羊,ship:船,shirt:襯衫,shoe:鞋子,shop:商店,shopkeeper:店主,short:短的,shorts:短褲,should:應該,shoulder:肩膀,shout:喊叫,show:表演,shy:害羞的,sick:生病的,side:旁邊,sidewalk:人行道,sight:視力,sign:標誌,simple:簡單的,since:自從,sing:唱歌,singer:歌手,sir:先生,sister:姊妹,sit:坐,six:六,sixteen:十六,sixteenth:第十六,sixth:第六,sixty:六十,size:尺寸,skate:溜冰,裙子:skirt,sky:天空,sleep:睡覺,slide:滑動,slim:苗條的,slow:慢的,small:小的,smart:聰明的,smell:聞起來,smile:微笑,smoke:抽菸,snack:點心,snake:蛇,snow:雪,snowman:雪人,snowy:下雪的,so:如此地,soccer:足球,socks:襪子,sofa:發,soldier:軍人,some:一些,someone:某人,something:某事,sometimes:有時候,somewhere:某處,son:兒子,song:歌曲,soon:不久,sore:疼痛的,sorry:抱歉,sound:聲音,soup:湯,south:南方,space:空間,spaghetti:義大利麵,speak:說,special:特別的,spell:拼字,spend:花費,spider:蜘蛛,spoon:湯匙,sport:運動,spring:春天,square:正方形的,stairs:樓梯,stamp:郵票,stand:站立,star:星星,start:開始,station:車站,stay:停留,steak:牛排,still:仍然,stomach:胃,stop:停,store:商店,straight:直的,story:故事,strange:奇怪的,stranger:陌生人,strawberry:草莓,street:街道,strong:強壯的,student:學生,study:研讀,stupid:笨的,subject:科目,successful:成功的,sugar:糖,summer:夏天,sun:太陽,Sunday:星期日,sunny:晴朗的,supermarket:超級市場,surf:衝浪,sure:確定的,surprise:使驚訝,surprised:感到驚訝的,sweater:毛衣,sweet:甜的,swim:游泳,swing:鞦韆,table:桌子,tail:尾巴,Taiwan:台灣,take:拿,talk:說話,tall:高的,tape:錄音帶,taste:品嚐,taxi:計程車,tea:茶,teach:教導,teacher:教師,team:團隊,teenager:青少年,telephone:電話,television:電視,tell:告訴,temple:寺廟,ten:十,tennis:網球,tenth:第十,terrible:可怕的,test:考試,than:比,thank:謝謝,that:那個,the:這/那,theater:戲院,then:那時,there:那裡,these:這些,they:他們,thick:厚的,thin:瘦的,thing:事情,think:想,third:第三,thirsty:口渴的,thirteen:十三,thirteenth:第十三,thirty:三十,this:這個,throat:喉嚨,throw:丟,those:迷些,though:雖然,thousand:千,three:三,Thursday:星期四,ticket:票券,tidy:整潔的,tiger:老虎,tie:領帶,time:時間,tired:疲倦的,to:到,toast:土司,today:今天,toe:腳趾,together:一起,tomato:番茄,tomorrow:明天,tonight:今晚,too:也,tooth:牙齒,top:頂端,total:總計,touch:碰觸,towel:巾,town:城鎮,toy:玩具,traffic:交通,train:火車,trash:垃圾,treat:對待,tree:樹,trick:惡作劇,trip:旅行,trouble:麻煩,truck:卡車,true:真實的,try:嘗試,T-shirt:T恤,tub:浴缸,Tuesday:星期二,turkey:火雞,turn:轉動,turtle:烏龜,twelfth:第十二,twelve:十二,twenty:二十,twentieth:第二十,twice:兩次,two:二,type:打字,typhoon:颱風,umbrella:雨傘,uncle:伯父,under:之下,understand:了解,unhappy:不快樂的,uniform:制服,until:直到,up:向上,USA:美國,use:使用,useful:有用的,通常:usually,假期:vacation,vegetable:蔬菜,very:非常,背心:vest,錄影帶:video,小提琴:violin,參觀:visit,聲音:voice,等待:wait,男服務生:waiter,女服務生:waitress,醒來:wake,走路:walk,牆壁:wall,皮夾:wallet:皮夾,想要:want,溫暖的:warm,清洗:wash,看:watch,水:water,西瓜:watermelon,波浪:wave,道路:way:道路,我們:we,弱的:weak,穿:wear,天氣:weather,星期三:Wednesday,星期:week,週末:weekend,歡迎:welcome,好地:well,西方:west,濕的:wet,鯨魚:whale,什麼:what,何時:when,何處:where,是否:whether,哪一個:which,白色:white,誰:who,誰的:whose,為什麼:why:為什麼,妻子:wife,將會:will,贏:win,風:wind,窗戶:window,多風的:windy,冬天:winter,明智的:wise,祝福:wish,和:with,沒有:without,女人:woman,wonderful:極好的,字:word,工作:work,作業本:workbook,工人:worker,世界:world,擔心:worry,寫:write,作家:writer,錯誤:wrong,庭院:yard,年:year,黃色:yellow,是:yes,昨天:yesterday,尚未:yet,你:you,年輕的:young:年輕的,好吃的:yummy,斑馬:zebra,零:zero,動物園:zoo" };
+
+// 稱號庫 (10階)
+const rankTitles = [
+    { ep: 0, title: "異界初生者" }, { ep: 500, title: "森林見習精靈" }, { ep: 1500, title: "語言探索者" },
+    { ep: 4000, title: "地牢冒險精靈" }, { ep: 8000, title: "咒語強化師" }, { ep: 15000, title: "元素守護靈" },
+    { ep: 30000, title: "大賢者精靈" }, { ep: 60000, title: "時空語言大師" }, { ep: 120000, title: "異界傳奇英雄" },
+    { ep: 250000, title: "神話級精靈守護神" }
+];
+
+// 核心變數
+let words = { 1: [], 2: [], 3: [] }, masteredWords = { 1: new Set(), 2: new Set(), 3: new Set() }, reviewWords = { 1: new Set(), 2: new Set(), 3: new Set() };
+let mistakeWeights = {}, petName = "", ep = 0, combo = 0, stage = -1, currentLevel = 1, curWord = null;
+let startTime = 0, timerPaused = false, totalAnswers = 0, isReviewMode = false, currentTitle = "異界初生者";
+const storySegments = ["睜開眼睛時，周圍不再是熟悉的教室，而是一片閃爍著微光的奇幻森林。","神祕聲音響起：『異界的靈魂，唯有精靈咒力能平息混亂。』","你發現自己變成了一顆精靈蛋。必須擊敗怪物來完成進化。","你不再是學生，你是這個世界的守護精靈。準備好了嗎？"];
+let currentSegment = 0;
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playTone(f, t, d) { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime); g.gain.setValueAtTime(0.1, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+d); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+d); }
+
+function initWords() { Object.keys(dataRaw).forEach(lvl => { words[lvl] = dataRaw[lvl].split(',').map(p => { const parts = p.split(':'); return [parts[0].trim(), parts[1].trim()]; }); }); }
+
+window.onload = () => { initWords(); updateRankDisplay(); setTimeout(startStory, 500); };
+
+function startStory() {
+    const sb = document.getElementById('story-box');
+    if (currentSegment < storySegments.length) {
+        let i = 0; const text = storySegments[currentSegment];
+        document.getElementById('next-story-btn').style.display = 'none';
+        const timer = setInterval(() => {
+            if (i < text.length) { sb.innerHTML = text.substring(0, i + 1) + '<span class="typing-cursor">|</span>'; i++; }
+            else { clearInterval(timer); sb.innerHTML = text; document.getElementById('next-story-btn').style.display = 'inline-block'; currentSegment++; }
+        }, 50);
+    } else { document.getElementById('step-story-intro').style.display = 'none'; document.getElementById('step-pet').style.display = 'block'; }
+}
+function playNextSegment() { startStory(); }
+
+function checkSaveAndShowTutorial() {
+    petName = document.getElementById('in-pet').value.trim();
+    if(!petName) return alert("請輸入精靈名字");
+    let saved = localStorage.getItem('wordDungeon_v9_' + petName);
+    if(saved) {
+        let d = JSON.parse(saved); ep = d.ep || 0; mistakeWeights = d.mistakes || {};
+        if(d.mastered) Object.keys(d.mastered).forEach(k => masteredWords[k] = new Set(d.mastered[k]));
+        if(d.reviews) Object.keys(d.reviews).forEach(k => reviewWords[k] = new Set(d.reviews[k]));
+    }
+    updateTitle();
+    document.getElementById('step-pet').style.display = 'none'; document.getElementById('step-tutorial').style.display = 'block';
+}
+
+function startGame() {
+    document.getElementById('step-tutorial').style.display = 'none'; document.getElementById('game-ui-all').style.display = 'block';
+    document.getElementById('exit-btn').style.display = 'block'; document.getElementById('p-name').innerText = petName;
+    checkEvo(); updateWrongListDisplay(); next();
+}
+
+function next() {
+    if (totalAnswers > 0 && totalAnswers % 30 === 0) { document.getElementById('game-ui-all').style.display = 'none'; document.getElementById('step-rest').style.display = 'block'; return; }
+    const list = words[currentLevel];
+    if (masteredWords[currentLevel].size >= list.length && !isReviewMode) {
+        if (reviewWords[currentLevel].size > 0) { isReviewMode = true; popMsg("⚔️ 進入心靈試煉！"); }
+        else if (currentLevel < 3) popMsg(`🎉 破關！`);
+        else checkStoryTrigger();
+    }
+    if (isReviewMode) {
+        const rList = Array.from(reviewWords[currentLevel]);
+        if (rList.length === 0) { isReviewMode = false; checkEvo(); return next(); }
+        curWord = list.find(w => w[0] === rList[Math.floor(Math.random() * rList.length)]);
+    } else {
+        let pool = []; list.forEach(w => { let wt = (mistakeWeights[w[0]] || 0) + 1; for(let i=0; i<wt; i++) pool.push(w); });
+        curWord = pool[Math.floor(Math.random() * pool.length)];
+    }
+    document.getElementById('cur-word-display').innerText = curWord[0];
+    document.getElementById('monster-img').innerText = isReviewMode ? "👻" : ["👾", "👹", "💀", "🦖", "🦂", "👺", "🧛", "🐉"][Math.floor(Math.random() * 8)];
+    say(curWord[0]);
+    const div = document.getElementById('options'); div.innerHTML = "";
+    generateOptions(curWord[1], list).forEach(o => {
+        const btn = document.createElement('button'); btn.className = 'opt-btn'; btn.innerText = o; btn.onclick = () => check(o); div.appendChild(btn);
+    });
+    startTime = Date.now(); timerPaused = false; resetTimerUI(); updateUI();
+}
+
+function check(sel) {
+    if(timerPaused) return;
+    totalAnswers++;
+    const timeSpent = (Date.now() - startTime)/1000;
+    const mult = { 1: 1, 2: 3, 3: 8 };
+
+    if (sel === curWord[1]) {
+        playTone(880, 'sine', 0.2);
+        if (!masteredWords[currentLevel].has(curWord[0])) masteredWords[currentLevel].add(curWord[0]);
+        if (isReviewMode) reviewWords[currentLevel].delete(curWord[0]);
+        
+        let bonus = Math.max(0, Math.floor(6 - timeSpent));
+        let base = Math.floor(Math.random() * 10) + 1;
+        let gain = (base + bonus) * mult[currentLevel];
+        
+        // 暴擊機制
+        if (timeSpent <= 1.0) {
+            gain *= 5;
+            showCritical();
+            playTone(1320, 'sine', 0.4);
+        }
+        
+        ep += gain; combo++; popMsg(`+${gain} EP`); checkTitle(); checkEvo(); saveGame(); next();
+    } else {
+        playTone(220, 'sawtooth', 0.4); if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        combo = 0; ep = Math.max(0, ep - 5); mistakeWeights[curWord[0]] = (mistakeWeights[curWord[0]] || 0) + 1;
+        reviewWords[currentLevel].add(curWord[0]); popMsg(`受傷！「${curWord[1]}」`); say(curWord[0]); saveGame(); next();
+    }
+}
+
+function showCritical() {
+    const crit = document.createElement('div'); crit.className = 'critical-text'; crit.innerText = 'CRITICAL!!';
+    document.getElementById('main-battle-scene').appendChild(crit);
+    setTimeout(() => crit.remove(), 800);
+}
+
+function checkTitle() {
+    let newTitle = rankTitles[0].title;
+    rankTitles.forEach(r => { if(ep >= r.ep) newTitle = r.title; });
+    if (newTitle !== currentTitle) {
+        currentTitle = newTitle;
+        timerPaused = true;
+        document.getElementById('new-rank-name').innerText = currentTitle;
+        document.getElementById('rank-up-modal').style.display = 'flex';
+    }
+    document.getElementById('p-title').innerText = currentTitle;
+}
+function updateTitle() { rankTitles.forEach(r => { if(ep >= r.ep) currentTitle = r.title; }); document.getElementById('p-title').innerText = currentTitle; }
+function closeRankUp() { document.getElementById('rank-up-modal').style.display = 'none'; timerPaused = false; }
+
+function checkEvo() {
+    const d1 = masteredWords[1].size >= words[1].length && reviewWords[1].size === 0;
+    const d2 = masteredWords[2].size >= words[2].length && reviewWords[2].size === 0;
+    const d3 = masteredWords[3].size >= words[3].length && reviewWords[3].size === 0;
+    let old = stage;
+    if (d3 && d2 && d1) stage = 3; else if (d2 && d1) stage = 2; else if (d1) stage = 1; else stage = 0;
+    if (stage > old && old !== -1) {
+        const scene = document.getElementById('main-battle-scene');
+        const spirit = document.getElementById('spirit-container');
+        scene.classList.add('evo-flash'); spirit.classList.add('evo-shake');
+        setTimeout(() => {
+            document.getElementById('spirit-visual').innerHTML = ["🥚", "🐥", "🦊", "🐲"][stage];
+            document.getElementById('spirit-rank').innerText = ["精靈蛋", "幼年期", "成長期", "完全體"][stage];
+            scene.classList.remove('evo-flash'); spirit.classList.remove('evo-shake');
+        }, 1000);
+    } else {
+        document.getElementById('spirit-visual').innerHTML = ["🥚", "🐥", "🦊", "🐲"][stage];
+        document.getElementById('spirit-rank').innerText = ["精靈蛋", "幼年期", "成長期", "完全體"][stage];
+    }
+}
+
+function askExit() { timerPaused = true; document.getElementById('confirm-modal').style.display = 'flex'; }
+function exitGame(confirm) {
+    if(confirm) { saveGame(); location.reload(); }
+    else { document.getElementById('confirm-modal').style.display = 'none'; timerPaused = false; }
+}
+function openRank() { timerPaused = true; updateRankDisplay(); const sorted = Object.entries(JSON.parse(localStorage.getItem('wordDungeon_Ranks') || "{}")).sort((a,b) => b[1] - a[1]); document.getElementById('full-rank-list').innerHTML = sorted.map(([n, s], i) => `<div class="list-item"><span>${i+1}. ${n}</span><span style="color:var(--evolution)">${s} EP</span></div>`).join('') || '尚無紀錄'; document.getElementById('rank-modal').style.display = 'flex'; }
+function closeRank() { document.getElementById('rank-modal').style.display = 'none'; timerPaused = false; }
+
+function saveGame() {
+    const mD = {}; Object.keys(masteredWords).forEach(k => mD[k] = Array.from(masteredWords[k]));
+    const rD = {}; Object.keys(reviewWords).forEach(k => rD[k] = Array.from(reviewWords[k]));
+    localStorage.setItem('wordDungeon_v9_' + petName, JSON.stringify({ ep, mastered: mD, mistakes: mistakeWeights, reviews: rD }));
+    let ranks = JSON.parse(localStorage.getItem('wordDungeon_Ranks') || "{}"); ranks[petName] = ep;
+    localStorage.setItem('wordDungeon_Ranks', JSON.stringify(ranks));
+}
+function updateRankDisplay() { let sorted = Object.entries(JSON.parse(localStorage.getItem('wordDungeon_Ranks') || "{}")).sort((a,b) => b[1] - a[1]).slice(0, 5); document.getElementById('rank-list').innerHTML = sorted.map(([n, s], i) => `<div class="list-item"><span>${i+1}. ${n}</span><span>${s} EP</span></div>`).join('') || '無'; }
+function updateWrongListDisplay() { const sorted = Object.entries(mistakeWeights).sort((a,b) => b[1] - a[1]); document.getElementById('wrong-list-box').innerHTML = sorted.length ? sorted.map(([w, c]) => `<div class="list-item"><span>${w}</span><span style="color:#e74c3c">x${c}</span></div>`).join('') : '<div style="text-align:center; font-size:0.8rem;">無紀錄</div>'; }
+function updateUI() { document.getElementById('ep-val').innerText = ep; const listCount = words[currentLevel].length || 1; const mCount = masteredWords[currentLevel].size; document.getElementById('mastered-count').innerText = mCount; document.getElementById('total-count').innerText = listCount; document.getElementById('evo-fill').style.width = (mCount / listCount) * 100 + "%"; }
+function checkStoryTrigger() { if([1,2,3].every(l => masteredWords[l].size >= words[l].length && reviewWords[l].size === 0)) { document.getElementById('game-ui-all').style.display = 'none'; document.getElementById('step-story-end').style.display = 'block'; document.getElementById('story-end-content').innerHTML = `<p>地牢深處，<strong>${petName}</strong> 終於破除迷霧！傳說將永傳下去。</p>`; } }
+function resumeGame() { totalAnswers = 0; document.getElementById('step-rest').style.display = 'none'; document.getElementById('game-ui-all').style.display = 'block'; next(); }
+function backToGame() { document.getElementById('step-story-end').style.display = 'none'; document.getElementById('game-ui-all').style.display = 'block'; }
+function resetTimerUI() { const bar = document.getElementById('timer-ui'); bar.style.transition = 'none'; bar.style.transform = 'scaleX(1)'; setTimeout(() => { if(!timerPaused) { bar.style.transition = 'transform 5.1s linear'; bar.style.transform = 'scaleX(0)'; } }, 50); }
+function generateOptions(corr, list) { let o = [corr]; let others = list.filter(x => x[1] !== corr).map(x => x[1]); while(o.length < 4 && others.length > 0) { let r = others[Math.floor(Math.random() * others.length)]; if(!o.includes(r)) o.push(r); } return o.sort(() => Math.random() - 0.5); }
+function changeLevel() { currentLevel = parseInt(document.getElementById('level-select').value); isReviewMode = false; updateUI(); next(); }
+function popMsg(t) { const b = document.getElementById('bubble'); b.innerHTML = t; b.classList.add('bubble-show'); setTimeout(() => b.classList.remove('bubble-show'), 3000); }
+function say(t) { window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang='en-US'; m.rate = 1.0; window.speechSynthesis.speak(m); }
+function replaySynthesis() { if(curWord) say(curWord[0]); }
+</script>
+</body>
+</html>
