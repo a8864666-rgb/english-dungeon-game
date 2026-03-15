@@ -204,9 +204,9 @@ function playTone(f, t, d) { const o = audioCtx.createOscillator(); const g = au
 function initWords() { Object.keys(dataRaw).forEach(lvl => { words[lvl] = dataRaw[lvl].split(',').map(p => { const parts = p.split(':'); return [parts[0].trim(), parts[1].trim()]; }); }); }
 
 document.addEventListener("DOMContentLoaded", () => {
-    initWords();           
-    updateRankDisplay();   
-    startStory();          
+    initWords();           // 優先解析單字
+    updateRankDisplay();   // 優先顯示排行榜
+    startStory();          // 立即啟動故事動畫，不再等待 busuanzi 腳本
 });
 
 function startStory() {
@@ -377,6 +377,7 @@ function replaySynthesis() {
     }
 }
 </script>
-<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
 </body>
 </html>
