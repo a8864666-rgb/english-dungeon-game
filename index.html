@@ -357,8 +357,19 @@ function resetTimerUI() { const bar = document.getElementById('timer-ui'); bar.s
 function generateOptions(corr, list) { let o = [corr]; let others = list.filter(x => x[1] !== corr).map(x => x[1]); while(o.length < 4 && others.length > 0) { let r = others[Math.floor(Math.random() * others.length)]; if(!o.includes(r)) o.push(r); } return o.sort(() => Math.random() - 0.5); }
 function changeLevel() { currentLevel = parseInt(document.getElementById('level-select').value); isReviewMode = false; updateUI(); next(); }
 function popMsg(t) { const b = document.getElementById('bubble'); b.innerHTML = t; b.classList.add('bubble-show'); setTimeout(() => b.classList.remove('bubble-show'), 3000); }
-function say(t) { window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang='en-US'; m.rate = 1.0; window.speechSynthesis.speak(m); }
-function replaySynthesis() { if(curWord) say(curWord[0]); }
+function say(t) { 
+    window.speechSynthesis.cancel(); 
+    const m = new SpeechSynthesisUtterance(t); 
+    m.lang = 'en-US'; 
+    m.rate = 1.0; 
+    window.speechSynthesis.speak(m); 
+}
+
+function replaySynthesis() { 
+    if (curWord && curWord[0]) {
+        say(curWord[0]); 
+    }
+}
 </script>
 </body>
 </html>
